@@ -47,6 +47,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
   };
 
   const handleApplyInspiration = (ins: CurationInspiration) => {
+    // 필터 상태 업데이트
     setSearchComposer(ins.filters.composer || "");
     setSearchPerformer(ins.filters.performer || "");
     setSearchMood(ins.filters.mood || "");
@@ -55,6 +56,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
     setDiscoveryMode(ins.filters.discoveryMode || "balanced");
     setEra(ins.filters.era || "");
     
+    // 즉시 검색 실행
     setSelectedIdx(null);
     onSearch(
       ins.filters.composer || "",
@@ -70,9 +72,10 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
   const handleSelect = (i: number) => {
     setSelectedIdx(i);
     const p = candidates[i];
-    // 이모지 없이 텍스트 정제
+    // 이모지 제거 및 텍스트 정제
     setEditedText(`[Kyth Classical 오늘의 큐레이션]\n\n마스터피스: ${p.composer} - ${p.title}\n연주: ${p.performer}\n\n[곡의 이야기]\n${p.description}\n\n[마에스트로의 통찰]\n${p.funFact}\n\n감상하기: https://www.youtube.com/results?search_query=${encodeURIComponent(p.youtubeQuery)}`);
     
+    // 에디터로 자동 스크롤
     setTimeout(() => {
       const editorSection = document.getElementById('manuscript-editor');
       if (editorSection) editorSection.scrollIntoView({ behavior: 'smooth' });
@@ -93,7 +96,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
   return (
     <div className="space-y-32 animate-in fade-in duration-1000 max-w-6xl mx-auto pb-20">
       
-      {/* 1. Perspective Section */}
+      {/* 1. Studio Header & Perspective Selection */}
       <div className="space-y-12">
         <div className="flex flex-col md:flex-row justify-between items-end gap-10">
            <div className="space-y-4 text-left max-w-xl">
@@ -128,7 +131,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
                 <h4 className="text-lg font-black text-stone-900 mb-4 group-hover:text-white transition-colors uppercase tracking-tight leading-tight">{ins.theme}</h4>
                 <p className="text-[13px] text-stone-400 font-medium leading-relaxed mb-8 group-hover:text-stone-300 transition-colors">{ins.reason}</p>
                 <div className="text-[10px] font-black uppercase tracking-widest text-[#9A84A1] flex items-center">
-                   <span>즉시 큐레이션 실행</span>
+                   <span>클릭 시 즉시 큐레이션 실행</span>
                 </div>
               </div>
             ))
@@ -136,7 +139,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
         </section>
       </div>
 
-      {/* 2. Curation Engine */}
+      {/* 2. Master Curation Engine (Core Control) */}
       <section className="bg-[#F8F5FA] border-y-2 border-stone-900 py-20 relative group">
         <div className="max-w-5xl mx-auto px-6 space-y-16">
           <div className="flex items-center space-x-3">
@@ -180,7 +183,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
         </div>
       </section>
 
-      {/* 3. Candidates Selection */}
+      {/* 3. Candidates Selection - 엔진 바로 아래에 결과 노출 */}
       <section className="space-y-16">
         <div className="flex items-center space-x-4 border-b border-stone-100 pb-8">
            <Music className="w-7 h-7 text-black" />
@@ -220,7 +223,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
         )}
       </section>
 
-      {/* 4. Manuscript Editor */}
+      {/* 4. Detailing Section - 원고 에디터 */}
       {selectedIdx !== null && (
         <section id="manuscript-editor" className="bg-[#F8F5FA] border border-stone-900 shadow-premium overflow-hidden animate-in slide-in-from-bottom-20 duration-1000">
           <div className="p-12 md:p-24 grid grid-cols-1 lg:grid-cols-2 gap-24">
