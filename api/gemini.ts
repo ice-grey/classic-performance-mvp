@@ -1,5 +1,5 @@
 export const config = {
-  runtime: "nodejs",
+  runtime: "edge",
 };
 
 const GEMINI_MODEL = "gemini-2.5-flash";
