@@ -149,7 +149,7 @@ const App: React.FC = () => {
       return (
         <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-8 text-center">
           <Loader2 className="w-12 h-12 animate-spin text-[#9A84A1]" />
-          <p className="text-xs font-bold uppercase tracking-[0.5em] text-stone-400">AI가 오늘의 명곡을 큐레이션 중입니다</p>
+          <p className="text-xs font-bold uppercase tracking-[0.5em] text-stone-500">AI가 오늘의 명곡을 큐레이션 중입니다</p>
         </div>
       );
     }
@@ -235,7 +235,7 @@ const App: React.FC = () => {
 
           <div className="flex items-center space-x-4 mb-6">
             <div className="h-px w-8 bg-stone-200"></div>
-            <div className="text-[11px] font-bold uppercase tracking-[0.5em] text-stone-400">My Personal Classical Music Curator</div>
+            <div className="text-xs font-bold uppercase tracking-[0.5em] text-stone-500">My Personal Classical Music Curator</div>
             <div className="h-px w-8 bg-stone-200"></div>
           </div>
 
@@ -243,7 +243,7 @@ const App: React.FC = () => {
             Kyth <span className="serif-italic font-normal italic text-[#9A84A1] block md:inline md:ml-4">Classical</span>
           </h1>
 
-          <p className="text-stone-500 text-base md:text-lg font-medium tracking-wide leading-relaxed max-w-2xl">
+          <p className="text-stone-600 text-base md:text-lg font-medium tracking-wide leading-relaxed max-w-2xl">
             나도 몰랐던, 내가 듣고 싶은 클래식 음악
           </p>
         </div>

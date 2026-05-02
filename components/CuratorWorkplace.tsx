@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ClassicalPiece } from '../types';
 import { getInspirations, CurationInspiration } from '../services/geminiService';
 import {
-  Sparkles, Check, MessageCircle, Mail, Music,
+  Check, MessageCircle, Mail, Music,
   PenTool, ArrowUpRight, Asterisk, Loader2
 } from 'lucide-react';
 
@@ -102,7 +102,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
            <div className="space-y-4 text-left max-w-xl">
               <div className="flex items-center space-x-3">
                 <Asterisk className="w-5 h-5 text-[#9A84A1]" />
-                <span className="text-xs font-black uppercase tracking-[0.5em] text-stone-400">Kyth's Curation for Today</span>
+                <span className="text-xs font-black uppercase tracking-[0.5em] text-stone-500">Kyth's Curation for Today</span>
               </div>
               <h2 className="text-4xl md:text-6xl font-logo font-black text-black leading-tight">
                 Classical music <br />
@@ -110,7 +110,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
               </h2>
            </div>
            <button onClick={loadInspirations} className="group flex items-center px-8 py-4 bg-[#F8F5FA] border border-stone-100 transition-all hover:bg-stone-900 hover:text-white">
-             <span className="text-xs font-bold tracking-tight">{loadingInspirations ? '...' : 'Tell me'}</span>
+             <span className="text-xs font-bold tracking-tight">{loadingInspirations ? '...' : 'Try Again'}</span>
            </button>
         </div>
 
@@ -128,7 +128,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
                   <ArrowUpRight className="w-5 h-5 text-[#9A84A1]" />
                 </div>
                 <h4 className="text-xl font-black text-stone-900 mb-4 group-hover:text-white transition-colors uppercase tracking-tight leading-tight">{ins.theme}</h4>
-                <p className="text-sm text-stone-500 font-medium leading-relaxed mb-8 group-hover:text-stone-300 transition-colors">{ins.reason}</p>
+                <p className="text-sm text-stone-700 font-medium leading-relaxed mb-8 group-hover:text-stone-300 transition-colors">{ins.reason}</p>
                 <div className="text-xs font-black uppercase tracking-widest text-[#9A84A1] flex items-center">
                    <span>선택</span>
                 </div>
@@ -143,7 +143,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
         <div className="max-w-5xl mx-auto px-6 space-y-16">
           <div className="flex items-center space-x-3">
              <div className="w-1.5 h-1.5 bg-[#9A84A1]"></div>
-             <span className="text-xs font-black uppercase tracking-[0.5em] text-stone-400">Kyth Classical Music Curator</span>
+             <span className="text-xs font-black uppercase tracking-[0.5em] text-stone-500">Kyth Classical Music Curator</span>
           </div>
           
           <form onSubmit={handleFilterSubmit} className="space-y-16 relative z-10">
@@ -175,7 +175,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
               disabled={isSearching} 
               className="w-full bg-stone-900 text-white py-8 font-black text-xs hover:bg-[#9A84A1] transition-all transform active:scale-[0.99] shadow-2xl disabled:opacity-50 flex items-center justify-center space-x-6 group"
             >
-              {isSearching ? <Loader2 className="w-6 h-6 animate-spin" /> : <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />}
+              {isSearching && <Loader2 className="w-6 h-6 animate-spin" />}
               <span className="tracking-[0.4em]">{isSearching ? "AI가 큐레이션 중..." : "I'M EXCITED"}</span>
             </button>
           </form>
@@ -208,7 +208,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
                 <h4 className="text-2xl font-logo font-black text-stone-900 mb-4 leading-tight tracking-tight uppercase">{p.title}</h4>
                 <p className="text-sm font-bold text-stone-500 uppercase tracking-widest mb-12">{p.composer}</p>
                 <div className={`flex items-center text-xs font-black uppercase tracking-widest transition-colors
-                   ${selectedIdx === i ? 'text-stone-900' : 'text-stone-300 group-hover:text-stone-900'}`}>
+                   ${selectedIdx === i ? 'text-stone-900' : 'text-stone-500 group-hover:text-stone-900'}`}>
                    {selectedIdx === i ? <Check className="w-4 h-4 mr-3 text-[#9A84A1]" /> : <PenTool className="w-4 h-4 mr-3" />}
                    <span>{selectedIdx === i ? '편집 준비 완료' : '자세히 보기'}</span>
                 </div>
@@ -217,7 +217,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
           </div>
         ) : (
           <div className="py-24 text-center border-2 border-dashed border-stone-100 bg-[#F8F5FA]">
-             <p className="text-stone-400 font-logo italic text-xl">엔진을 가동하여 오늘의 곡 후보를 발견하세요.</p>
+             <p className="text-stone-500 font-logo italic text-xl">엔진을 가동하여 오늘의 곡 후보를 발견하세요.</p>
           </div>
         )}
       </section>

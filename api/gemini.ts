@@ -134,7 +134,11 @@ function buildPrompt(req: GeminiRequest): {
     case "inspirations":
       return {
         prompt: `오늘은 ${req.date}입니다. Kyth Classical의 큐레이터를 위해 오늘 시도해볼만한 매력적인 큐레이션 테마 3가지를 제안해주세요.
-                 단순한 작곡가 위주가 아니라 '상황(Occasion)'이나 '특정 악기의 질감'을 강조한 테마를 포함해주세요.`,
+                 단순한 작곡가 위주가 아니라 '상황(Occasion)'이나 '특정 악기의 질감'을 강조한 테마를 포함해주세요.
+
+                 [⚠️ 절대 규칙]
+                 - 모든 출력 필드(theme, reason)는 반드시 **한국어**로만 작성하세요. 영어 단어/문장 사용 금지.
+                 - filters 내부의 값(composer, performer 등)은 음악가 고유명사이므로 영문 또는 한국어 둘 다 가능합니다.`,
         schema: inspirationsSchema,
       };
 
@@ -162,9 +166,10 @@ function buildPrompt(req: GeminiRequest): {
                  2. 분위기(Mood): ${filters.mood || "자유로운 분위기"}
                  ${strict}
 
-                 [설명 작성 지침]
-                 - 모든 설명(description, funFact)은 한국어로 작성하세요.
-                 - 유튜브 검색어(youtubeQuery)는 [작곡가 + 곡 제목 + 연주자] 형식으로 생성하세요.`,
+                 [⚠️ 절대 규칙]
+                 - description, funFact, mood는 반드시 **한국어**로만 작성하세요. 영어 문장/단어 사용 금지.
+                 - composer, title, performer, era는 음악가/작품의 표준 표기를 사용 (영문 그대로 OK).
+                 - youtubeQuery는 [작곡가 + 곡 제목 + 연주자] 형식 (검색용이므로 영문 OK).`,
         schema: candidatesSchema,
       };
     }

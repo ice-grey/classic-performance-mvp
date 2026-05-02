@@ -39,16 +39,16 @@ export const MyPick: React.FC<MyPickProps> = ({
     <div className="max-w-5xl mx-auto space-y-24 animate-in fade-in duration-700 pb-20">
       <div className="text-center space-y-3">
         <h2 className="text-4xl md:text-5xl font-bold text-black uppercase tracking-tight">My Pick</h2>
-        <p className="text-stone-500 italic text-xs font-bold uppercase tracking-[0.3em]">
-          Today's Pick · Liked · Past Picks
+        <p className="text-stone-500 italic text-sm font-bold tracking-wide">
+          오늘의 픽 · 하트한 곡 · 저장한 공연 · 지난 픽
         </p>
       </div>
 
       {isAllEmpty && (
         <div className="text-center py-32 bg-[#F8F5FA] border-2 border-dashed border-stone-200">
           <Heart className="w-12 h-12 text-stone-300 mx-auto mb-6" />
-          <p className="text-stone-500 text-lg font-medium">아직 픽한 곡이 없어요.</p>
-          <p className="text-stone-400 text-sm mt-2">큐레이션 탭에서 오늘의 곡을 골라보세요.</p>
+          <p className="text-stone-700 text-lg font-medium">아직 픽한 곡이 없어요.</p>
+          <p className="text-stone-500 text-sm mt-2">큐레이션 탭에서 오늘의 곡을 골라보세요.</p>
         </div>
       )}
 
