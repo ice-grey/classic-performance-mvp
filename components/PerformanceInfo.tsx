@@ -44,7 +44,7 @@ export const PerformanceInfo: React.FC<PerformanceInfoProps> = ({ onSave, isSave
       <div className="text-center space-y-2">
         {/* 제목 블랙으로 변경 */}
         <h2 className="text-3xl md:text-4xl font-bold text-black uppercase tracking-tight">Upcoming Concerts</h2>
-        <p className="text-stone-500 italic text-[11px] font-bold uppercase tracking-widest">Global Live Schedule</p>
+        <p className="text-stone-500 italic text-xs font-bold uppercase tracking-widest">Global Live Schedule</p>
       </div>
 
       {/* 검색창 큐레이션과 같은 보라색 배경으로 변경 */}
@@ -63,7 +63,7 @@ export const PerformanceInfo: React.FC<PerformanceInfoProps> = ({ onSave, isSave
           <button 
             type="submit"
             disabled={isSearching}
-            className="px-10 py-4 bg-stone-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] hover:bg-white hover:text-stone-900 transition shadow-lg flex items-center justify-center space-x-3"
+            className="px-10 py-4 bg-stone-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white hover:text-stone-900 transition shadow-lg flex items-center justify-center space-x-3"
           >
             {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
             <span>{isSearching ? "Searching..." : "공연 찾기"}</span>
@@ -91,7 +91,7 @@ export const PerformanceInfo: React.FC<PerformanceInfoProps> = ({ onSave, isSave
               <div className="p-10 flex flex-col justify-between flex-grow">
                 <div className="space-y-4">
                   <h3 className="text-2xl font-bold text-stone-900 tracking-tight">{p.title}</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[11px] font-bold text-stone-500 uppercase tracking-widest">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold text-stone-500 uppercase tracking-widest">
                     <span className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-[#9A84A1]" /> {p.venue}</span>
                     <span className="flex items-center"><User className="w-4 h-4 mr-2 text-[#9A84A1]" /> {p.performer}</span>
                   </div>
@@ -99,19 +99,19 @@ export const PerformanceInfo: React.FC<PerformanceInfoProps> = ({ onSave, isSave
                 <div className="mt-8 flex items-center justify-between border-t border-stone-50 pt-8">
                     <button 
                       onClick={() => onSave(p)}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition
+                      className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition
                         ${isSaved(p.id) ? 'text-stone-900 bg-stone-100' : 'text-stone-400 hover:text-stone-900'}`}
                     >
                       {isSaved(p.id) ? <Check className="w-4 h-4" /> : <Heart className="w-4 h-4" />}
                       <span>{isSaved(p.id) ? '저장됨' : '공연 저장'}</span>
                     </button>
-                    <a 
-                      href={p.link} 
-                      target="_blank" 
+                    <a
+                      href={`https://www.google.com/search?q=${encodeURIComponent(`${p.title} ${p.venue} ${p.date}`)}`}
+                      target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center space-x-3 px-8 py-3 bg-stone-900 text-white rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-[#9A84A1] transition shadow-md"
+                      className="flex items-center space-x-3 px-8 py-3 bg-stone-900 text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-[#9A84A1] transition shadow-md"
                     >
-                      <span>상세보기</span>
+                      <span>검색하기</span>
                       <ExternalLink className="w-4 h-4" />
                     </a>
                 </div>

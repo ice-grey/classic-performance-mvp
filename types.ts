@@ -60,11 +60,9 @@ export interface Performance {
 
 export enum ViewState {
   CURATE = 'CURATE',
-  HOME = 'HOME',
-  HISTORY = 'HISTORY',
-  COMMUNITY = 'COMMUNITY',
   PERFORMANCES = 'PERFORMANCES',
-  MY_COLLECTION = 'MY_COLLECTION',
+  MY_PICK = 'MY_PICK',
+  COMMUNITY = 'COMMUNITY',
   PRICING = 'PRICING',
   ADMIN = 'ADMIN'
 }

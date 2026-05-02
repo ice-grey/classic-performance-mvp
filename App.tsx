@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
-import { RecommendationCard } from './components/RecommendationCard';
-import { HistoryList } from './components/HistoryList';
 import { PricingSection } from './components/PricingSection';
 import { AdminPanel } from './components/AdminPanel';
 import { CuratorWorkplace } from './components/CuratorWorkplace';
 import { CommunityBoard } from './components/CommunityBoard';
 import { PerformanceInfo } from './components/PerformanceInfo';
-import { MyCollection } from './components/MyCollection';
+import { MyPick } from './components/MyPick';
 import { AuthModal } from './components/AuthModal';
 import { PaymentModal } from './components/PaymentModal';
 import { generateCandidates } from './services/geminiService';
 import { ClassicalPiece, ViewState, SubscriptionTier, UserAccount, Performance } from './types';
-import { Loader2, User, Crown, Music, Asterisk } from 'lucide-react';
+import { Loader2, User, Crown } from 'lucide-react';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.CURATE);
@@ -23,7 +21,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [savedPieces, setSavedPieces] = useState<ClassicalPiece[]>([]);
   const [savedPerformances, setSavedPerformances] = useState<Performance[]>([]);
 
@@ -37,7 +35,7 @@ const App: React.FC = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       const savedPiece = localStorage.getItem(`classic_daily_${today}`);
-      
+
       if (savedPiece) {
         setTodayPiece(JSON.parse(savedPiece));
       } else {
@@ -56,7 +54,7 @@ const App: React.FC = () => {
     fetchCurationData();
     const savedHistory = localStorage.getItem('classic_history');
     if (savedHistory) setHistory(JSON.parse(savedHistory));
-    
+
     const savedUser = localStorage.getItem('classic_user');
     if (savedUser) {
       const user = JSON.parse(savedUser);
@@ -116,14 +114,14 @@ const App: React.FC = () => {
     const today = new Date().toISOString().split('T')[0];
     setTodayPiece(piece);
     localStorage.setItem(`classic_daily_${today}`, JSON.stringify(piece));
-    
+
     const existingHistoryRaw = localStorage.getItem('classic_history');
     const existingHistory = existingHistoryRaw ? JSON.parse(existingHistoryRaw) : [];
-    const updatedHistory = [piece, ...existingHistory.filter((p: any) => p.id !== piece.id)].slice(0, 10);
+    const updatedHistory = [piece, ...existingHistory.filter((p: any) => p.id !== piece.id)].slice(0, 100);
     localStorage.setItem('classic_history', JSON.stringify(updatedHistory));
     setHistory(updatedHistory);
-    
-    handleSetView(ViewState.HOME);
+
+    handleSetView(ViewState.MY_PICK);
   };
 
   const handleLogin = (user: UserAccount) => {
@@ -151,7 +149,7 @@ const App: React.FC = () => {
       return (
         <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-8 text-center">
           <Loader2 className="w-12 h-12 animate-spin text-[#9A84A1]" />
-          <p className="text-[11px] font-bold uppercase tracking-[0.5em] text-stone-400">Syncing Archive Collective</p>
+          <p className="text-xs font-bold uppercase tracking-[0.5em] text-stone-400">AI가 오늘의 명곡을 큐레이션 중입니다</p>
         </div>
       );
     }
@@ -160,7 +158,7 @@ const App: React.FC = () => {
       return (
         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center p-6 space-y-8">
           <p className="text-stone-400 font-medium text-lg italic serif">데이터를 불러오지 못했습니다.</p>
-          <button onClick={fetchCurationData} className="px-12 py-4 bg-stone-900 text-white font-bold text-[10px] hover:bg-[#9A84A1] transition-all">다시 시도</button>
+          <button onClick={fetchCurationData} className="px-12 py-4 bg-stone-900 text-white font-bold text-xs hover:bg-[#9A84A1] transition-all">다시 시도</button>
         </div>
       );
     }
@@ -168,44 +166,46 @@ const App: React.FC = () => {
     switch (currentView) {
       case ViewState.CURATE:
         return (
-          <CuratorWorkplace 
-            candidates={candidates} 
-            onConfirm={handleConfirmPiece} 
+          <CuratorWorkplace
+            candidates={candidates}
+            onConfirm={handleConfirmPiece}
             onSearch={handleCustomSearch}
             isSearching={isSearching}
           />
         );
-      case ViewState.HOME:
-        return todayPiece && (
-          <RecommendationCard 
-            piece={todayPiece} 
-            tier={tier} 
-            onUpgrade={() => handleSetView(ViewState.PRICING)} 
-            onSave={toggleSavePiece}
-            isSaved={(id) => savedPieces.some(p => p.id === id)}
-          />
-        );
       case ViewState.PERFORMANCES:
         return (
-          <PerformanceInfo 
+          <PerformanceInfo
             onSave={toggleSavePerformance}
             isSaved={(id) => savedPerformances.some(p => p.id === id)}
           />
         );
-      case ViewState.MY_COLLECTION:
+      case ViewState.MY_PICK:
         return (
-          <MyCollection 
+          <MyPick
+            todayPiece={todayPiece}
             savedPieces={savedPieces}
             savedPerformances={savedPerformances}
-            onRemovePiece={(id) => setSavedPieces(savedPieces.filter(p => p.id !== id))}
-            onRemovePerformance={(id) => setSavedPerformances(savedPerformances.filter(p => p.id !== id))}
-            onSelectPiece={(p) => { setTodayPiece(p); handleSetView(ViewState.HOME); }}
+            history={history}
+            tier={tier}
+            onUpgrade={() => handleSetView(ViewState.PRICING)}
+            onSave={toggleSavePiece}
+            isSaved={(id) => savedPieces.some(p => p.id === id)}
+            onRemovePiece={(id) => {
+              const updated = savedPieces.filter(p => p.id !== id);
+              setSavedPieces(updated);
+              localStorage.setItem('saved_pieces', JSON.stringify(updated));
+            }}
+            onRemovePerformance={(id) => {
+              const updated = savedPerformances.filter(p => p.id !== id);
+              setSavedPerformances(updated);
+              localStorage.setItem('saved_performances', JSON.stringify(updated));
+            }}
+            onSelectPiece={(p) => setTodayPiece(p)}
           />
         );
       case ViewState.COMMUNITY:
         return <CommunityBoard currentUser={currentUser} onLoginRequest={() => setShowAuthModal(true)} />;
-      case ViewState.HISTORY:
-        return <HistoryList items={history} tier={tier} onSelect={(p) => { setTodayPiece(p); handleSetView(ViewState.HOME); }} onUpgrade={() => handleSetView(ViewState.PRICING)} />;
       case ViewState.PRICING:
         return <PricingSection currentTier={tier} onSelectPlan={() => currentUser ? setShowPaymentModal(true) : setShowAuthModal(true)} />;
       case ViewState.ADMIN:
@@ -218,7 +218,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-white text-[#1A1A1A]">
       <Navbar activeView={currentView} setView={handleSetView} tier={tier} />
-      
+
       <main className="flex-grow container mx-auto px-6 py-24 max-w-6xl">
         {/* Editorial Header Section */}
         <div className="mb-24 flex flex-col items-center text-center">
@@ -227,15 +227,15 @@ const App: React.FC = () => {
               <div className="w-6 h-6 bg-stone-900 flex items-center justify-center text-[10px] text-white">
                 {tier === SubscriptionTier.PREMIUM ? <Crown className="w-3 h-3 text-[#9A84A1]" /> : <User className="w-3.5 h-3.5" />}
               </div>
-              <span className="text-[11px] font-bold uppercase tracking-widest text-stone-600">{currentUser.username}</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-stone-600">{currentUser.username}</span>
               <div className="w-px h-3 bg-stone-200"></div>
-              <button onClick={handleLogout} className="text-[10px] font-bold uppercase tracking-widest text-stone-300 hover:text-stone-900 transition">로그아웃</button>
+              <button onClick={handleLogout} className="text-[11px] font-bold uppercase tracking-widest text-stone-400 hover:text-stone-900 transition">로그아웃</button>
             </div>
           )}
-          
+
           <div className="flex items-center space-x-4 mb-6">
             <div className="h-px w-8 bg-stone-200"></div>
-            <div className="text-[9px] font-bold uppercase tracking-[0.6em] text-stone-400">Classic Archive</div>
+            <div className="text-[11px] font-bold uppercase tracking-[0.5em] text-stone-400">My Personal Classical Music Curator</div>
             <div className="h-px w-8 bg-stone-200"></div>
           </div>
 
@@ -243,8 +243,8 @@ const App: React.FC = () => {
             Kyth <span className="serif-italic font-normal italic text-[#9A84A1] block md:inline md:ml-4">Classical</span>
           </h1>
 
-          <p className="text-stone-500 text-sm md:text-base font-medium tracking-wide leading-relaxed max-w-2xl">
-            정밀하게 큐레이션된 고전의 정수, 매일 한 곡의 마스터피스가 당신의 영혼을 깨웁니다.
+          <p className="text-stone-500 text-base md:text-lg font-medium tracking-wide leading-relaxed max-w-2xl">
+            나도 몰랐던, 내가 듣고 싶은 클래식 음악
           </p>
         </div>
 
@@ -254,22 +254,22 @@ const App: React.FC = () => {
       <footer className="bg-[#F8F5FA] border-t border-stone-100 py-24 px-6 text-center">
         <div className="max-w-xs mx-auto mb-10">
           <div className="text-2xl font-logo font-bold mb-2">Kyth</div>
-          <p className="text-[10px] text-stone-400 leading-relaxed uppercase tracking-widest">A legacy of sound and emotion curated for the modern connoisseur.</p>
+          <p className="text-xs text-stone-400 leading-relaxed uppercase tracking-widest">A legacy of sound and emotion curated for the modern connoisseur.</p>
         </div>
-        <p className="text-[10px] italic mb-6 text-stone-300 serif-italic">"음악은 말로 표현할 수 없는 것을 표현한다." — Victor Hugo</p>
-        <p className="text-[8px] font-bold uppercase tracking-[0.5em] text-stone-200 mt-12">© 2025 KYTH CLASSICAL ARCHIVE</p>
+        <p className="text-xs italic mb-6 text-stone-400 serif-italic">"음악은 말로 표현할 수 없는 것을 표현한다." — Victor Hugo</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-stone-300 mt-12">© 2025 KYTH CLASSICAL ARCHIVE</p>
       </footer>
 
       {showAuthModal && (
-        <AuthModal 
-          onClose={() => setShowAuthModal(false)} 
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
           onLogin={handleLogin}
         />
       )}
 
       {showPaymentModal && (
-        <PaymentModal 
-          onClose={() => setShowPaymentModal(false)} 
+        <PaymentModal
+          onClose={() => setShowPaymentModal(false)}
           onSuccess={handleUpgradeSuccess}
         />
       )}
