@@ -80,16 +80,11 @@ export const PerformanceInfo: React.FC<PerformanceInfoProps> = ({ onSave, isSave
           {performances.map((p) => (
             <div key={p.id} className="bg-white rounded-[2.5rem] overflow-hidden shadow-lg border border-stone-50 flex flex-col md:flex-row group hover:shadow-2xl transition-all duration-500">
               <div className="md:w-44 h-44 md:h-auto bg-stone-900 flex items-center justify-center text-white relative overflow-hidden flex-shrink-0">
-                <Music className="w-10 h-10 opacity-20" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                   <div className="text-center">
-                     <span className="block text-3xl font-bold text-white mb-1">{p.date.split('-')[2] || '??'}</span>
-                     <span className="block text-[9px] font-bold uppercase tracking-widest opacity-40">Monthly Event</span>
-                   </div>
-                </div>
+                <Music className="w-12 h-12 opacity-30" />
               </div>
               <div className="p-10 flex flex-col justify-between flex-grow">
                 <div className="space-y-4">
+                  <span className="text-xs font-black uppercase tracking-[0.2em] text-[#9A84A1] block">{p.date}</span>
                   <h3 className="text-2xl font-bold text-stone-900 tracking-tight">{p.title}</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold text-stone-500 uppercase tracking-widest">
                     <span className="flex items-center"><MapPin className="w-4 h-4 mr-2 text-[#9A84A1]" /> {p.venue}</span>
