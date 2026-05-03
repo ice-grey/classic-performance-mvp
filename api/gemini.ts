@@ -129,6 +129,7 @@ function jsonResponse(payload: unknown, status: number): Response {
 function buildPrompt(req: GeminiRequest): {
   prompt: string;
   schema: unknown | null;
+  useGoogleSearch?: boolean;
 } {
   switch (req.action) {
     case "inspirations":
@@ -177,10 +178,28 @@ function buildPrompt(req: GeminiRequest): {
     case "performances":
       return {
         prompt: req.query
-          ? `사용자가 '${req.query}'와 관련된 클래식 음악 공연을 검색하고 있습니다.
-             ${req.date} 이후로 예정된 해당 검색어와 연관된 실제 공연 일정 5개를 생성해주세요.`
-          : `${req.date} 기준, 한국 및 세계적으로 주목받는 실존 클래식 공연 일정 5개를 생성해주세요.`,
-        schema: performancesSchema,
+          ? `웹 검색을 사용해서 '${req.query}'와 관련된 실제 클래식 음악 공연 일정을 찾아주세요.
+             ${req.date} 이후로 예정된 공연을 최대 5건 찾아주세요.
+
+             결과를 다음 JSON 배열 형식으로만 반환하세요. 마크다운 코드 블록, 설명, 주석, 그 외 어떤 텍스트도 포함하지 말고 순수 JSON 배열만 반환하세요:
+             [{"title":"공연명","date":"YYYY-MM-DD","venue":"공연장","performer":"연주자","link":"https://실제공연URL"}]
+
+             규칙:
+             - link는 검색 결과에서 가져온 실제 공연 페이지 또는 티켓 페이지 URL이어야 합니다. 추측 금지.
+             - title, venue, performer는 한국어 또는 원어 그대로 사용.
+             - date는 YYYY-MM-DD 형식.
+             - 검색 결과에 정보가 없으면 항목 수를 줄이세요. 추측해서 채우지 마세요.`
+          : `웹 검색을 사용해서 ${req.date} 이후 예정된 한국 및 세계 주요 클래식 공연 일정을 5건 찾아주세요.
+
+             결과를 다음 JSON 배열 형식으로만 반환하세요. 마크다운 코드 블록, 설명, 주석, 그 외 어떤 텍스트도 포함하지 말고 순수 JSON 배열만 반환하세요:
+             [{"title":"공연명","date":"YYYY-MM-DD","venue":"공연장","performer":"연주자","link":"https://실제공연URL"}]
+
+             규칙:
+             - link는 검색 결과에서 가져온 실제 공연/티켓 URL이어야 합니다. 추측 금지.
+             - 한국 공연 1-2건, 해외 메이저 공연(카네기홀, 빈, 베를린, BBC Proms 등) 2-3건을 섞어주세요.
+             - date는 YYYY-MM-DD 형식.`,
+        schema: null,
+        useGoogleSearch: true,
       };
 
     case "maestro":
@@ -220,7 +239,7 @@ export default async function handler(req: Request): Promise<Response> {
     return jsonResponse({ error: "Unknown or missing `action`" }, 400);
   }
 
-  const { prompt, schema } = buildPrompt(body);
+  const { prompt, schema, useGoogleSearch } = buildPrompt(body);
 
   const generationConfig: Record<string, unknown> = {};
   if (schema) {
@@ -228,9 +247,18 @@ export default async function handler(req: Request): Promise<Response> {
     generationConfig.responseSchema = schema;
   }
 
+  const requestBody: Record<string, unknown> = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig,
+  };
+  if (useGoogleSearch) {
+    requestBody.tools = [{ googleSearch: {} }];
+  }
+
   console.log("Calling Gemini REST API", {
     action: body.action,
     model: GEMINI_MODEL,
+    grounded: !!useGoogleSearch,
   });
 
   const controller = new AbortController();
@@ -245,10 +273,7 @@ export default async function handler(req: Request): Promise<Response> {
         "Content-Type": "application/json",
         "x-goog-api-key": apiKey,
       },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig,
-      }),
+      body: JSON.stringify(requestBody),
     });
   } catch (err) {
     clearTimeout(timer);
@@ -296,8 +321,52 @@ export default async function handler(req: Request): Promise<Response> {
     return jsonResponse({ text }, 200);
   }
 
+  // Grounded responses come as plain text (often wrapped in ```json ... ```).
+  // Strip fences and extract the first JSON array we can find.
+  if (useGoogleSearch) {
+    const cleaned = extractJsonArray(text);
+    if (!cleaned) {
+      console.error("Could not extract JSON array from grounded response:", text.slice(0, 500));
+      return jsonResponse({ error: "Search results could not be parsed" }, 502);
+    }
+    return new Response(JSON.stringify(cleaned), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   return new Response(text, {
     status: 200,
     headers: { "Content-Type": "application/json" },
   });
+}
+
+function extractJsonArray(raw: string): unknown[] | null {
+  const tryParse = (s: string): unknown[] | null => {
+    try {
+      const v = JSON.parse(s);
+      return Array.isArray(v) ? v : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const direct = tryParse(raw.trim());
+  if (direct) return direct;
+
+  const fence = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) {
+    const fromFence = tryParse(fence[1].trim());
+    if (fromFence) return fromFence;
+  }
+
+  const firstBracket = raw.indexOf("[");
+  const lastBracket = raw.lastIndexOf("]");
+  if (firstBracket !== -1 && lastBracket > firstBracket) {
+    const slice = raw.slice(firstBracket, lastBracket + 1);
+    const fromSlice = tryParse(slice);
+    if (fromSlice) return fromSlice;
+  }
+
+  return null;
 }
