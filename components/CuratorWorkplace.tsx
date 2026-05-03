@@ -30,6 +30,14 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
   const [loadingInspirations, setLoadingInspirations] = useState(false);
 
   useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const cached = localStorage.getItem(`inspirations_${today}`);
+    if (cached) {
+      try {
+        setInspirations(JSON.parse(cached));
+        return;
+      } catch {}
+    }
     loadInspirations();
   }, []);
 
@@ -39,6 +47,7 @@ export const CuratorWorkplace: React.FC<CuratorWorkplaceProps> = ({ candidates, 
       const today = new Date().toISOString().split('T')[0];
       const items = await getInspirations(today);
       setInspirations(items);
+      localStorage.setItem(`inspirations_${today}`, JSON.stringify(items));
     } catch (err) {
       console.error(err);
     } finally {
