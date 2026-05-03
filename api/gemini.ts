@@ -6,7 +6,12 @@ const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const REQUEST_TIMEOUT_MS = 25_000;
 
-type Action = "inspirations" | "candidates" | "performances" | "maestro";
+type Action =
+  | "inspirations"
+  | "candidates"
+  | "performances"
+  | "maestro"
+  | "dailyPick";
 
 interface BaseRequest {
   action: Action;
@@ -14,6 +19,11 @@ interface BaseRequest {
 
 interface InspirationsRequest extends BaseRequest {
   action: "inspirations";
+  date: string;
+}
+
+interface DailyPickRequest extends BaseRequest {
+  action: "dailyPick";
   date: string;
 }
 
@@ -49,7 +59,28 @@ type GeminiRequest =
   | InspirationsRequest
   | CandidatesRequest
   | PerformancesRequest
-  | MaestroRequest;
+  | MaestroRequest
+  | DailyPickRequest;
+
+const dailyPickSchema = {
+  type: "OBJECT",
+  properties: {
+    theme: { type: "STRING" },
+    description: { type: "STRING" },
+    title: { type: "STRING" },
+    composer: { type: "STRING" },
+    performer: { type: "STRING" },
+    youtubeQuery: { type: "STRING" },
+  },
+  required: [
+    "theme",
+    "description",
+    "title",
+    "composer",
+    "performer",
+    "youtubeQuery",
+  ],
+};
 
 const inspirationsSchema = {
   type: "ARRAY",
@@ -178,28 +209,37 @@ function buildPrompt(req: GeminiRequest): {
     case "performances":
       return {
         prompt: req.query
-          ? `웹 검색을 사용해서 '${req.query}'와 관련된 실제 클래식 음악 공연 일정을 찾아주세요.
-             ${req.date} 이후로 예정된 공연을 최대 5건 찾아주세요.
+          ? `사용자가 '${req.query}'와 관련된 클래식 음악 공연을 검색하고 있습니다.
+             ${req.date} 이후로 예정된 해당 검색어와 연관된 공연 일정 5개를 생성해주세요.
 
-             결과를 다음 JSON 배열 형식으로만 반환하세요. 마크다운 코드 블록, 설명, 주석, 그 외 어떤 텍스트도 포함하지 말고 순수 JSON 배열만 반환하세요:
-             [{"title":"공연명","date":"YYYY-MM-DD","venue":"공연장","performer":"연주자","link":"https://실제공연URL"}]
-
-             규칙:
-             - link는 검색 결과에서 가져온 실제 공연 페이지 또는 티켓 페이지 URL이어야 합니다. 추측 금지.
-             - title, venue, performer는 한국어 또는 원어 그대로 사용.
+             [⚠️ 절대 규칙]
+             - title, venue, performer는 한국어 또는 원어 표준 표기.
              - date는 YYYY-MM-DD 형식.
-             - 검색 결과에 정보가 없으면 항목 수를 줄이세요. 추측해서 채우지 마세요.`
-          : `웹 검색을 사용해서 ${req.date} 이후 예정된 한국 및 세계 주요 클래식 공연 일정을 5건 찾아주세요.
+             - link는 https://www.google.com/search?q= 로 시작하는 구글 검색 URL을 만들어주세요. (예: link 값은 빈 문자열로 두면 클라이언트에서 채웁니다.)`
+          : `${req.date} 기준, 한국 및 세계적으로 주목받는 클래식 공연 일정 5개를 생성해주세요.
 
-             결과를 다음 JSON 배열 형식으로만 반환하세요. 마크다운 코드 블록, 설명, 주석, 그 외 어떤 텍스트도 포함하지 말고 순수 JSON 배열만 반환하세요:
-             [{"title":"공연명","date":"YYYY-MM-DD","venue":"공연장","performer":"연주자","link":"https://실제공연URL"}]
+             [⚠️ 절대 규칙]
+             - 한국 공연 1-2건, 해외 메이저 공연 2-3건 섞어주세요.
+             - date는 YYYY-MM-DD 형식.
+             - title, venue, performer는 한국어 또는 원어 표준 표기.`,
+        schema: performancesSchema,
+      };
 
-             규칙:
-             - link는 검색 결과에서 가져온 실제 공연/티켓 URL이어야 합니다. 추측 금지.
-             - 한국 공연 1-2건, 해외 메이저 공연(카네기홀, 빈, 베를린, BBC Proms 등) 2-3건을 섞어주세요.
-             - date는 YYYY-MM-DD 형식.`,
-        schema: null,
-        useGoogleSearch: true,
+    case "dailyPick":
+      return {
+        prompt: `오늘은 ${req.date}입니다. 오늘 추천하는 클래식 명곡 1개를 다음 형식으로 골라주세요.
+
+                 - theme: 오늘의 큐레이션 한 줄 제목 (한국어, 6-15자, 예: "비오는 오후의 첼로")
+                 - description: 한 문장으로 곡의 매력 설명 (한국어, 30-60자)
+                 - title: 곡의 정식 제목 (영문 또는 원어 표준 표기)
+                 - composer: 작곡가 (영문 또는 한국어)
+                 - performer: 추천 연주자 (영문 또는 한국어)
+                 - youtubeQuery: 유튜브 검색어 ("composer title performer" 형식, 영문)
+
+                 [⚠️ 절대 규칙]
+                 - theme과 description은 반드시 **한국어**로만 작성하세요. 영어 단어/문장 사용 금지.
+                 - 매번 다른 곡을 선택하세요 (날짜와 무관하게 다양성 추구).`,
+        schema: dailyPickSchema,
       };
 
     case "maestro":
@@ -234,6 +274,7 @@ export default async function handler(req: Request): Promise<Response> {
     "candidates",
     "performances",
     "maestro",
+    "dailyPick",
   ];
   if (!body || !allowedActions.includes(body.action)) {
     return jsonResponse({ error: "Unknown or missing `action`" }, 400);

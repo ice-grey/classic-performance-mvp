@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Performance } from '../types';
 import { getUpcomingPerformances } from '../services/geminiService';
-import { Calendar, MapPin, User, ExternalLink, Loader2, Ticket, Search, Heart, Check, Music } from 'lucide-react';
+import { MapPin, User, ExternalLink, Loader2, Search, Heart, Check, Music } from 'lucide-react';
 
 interface PerformanceInfoProps {
   onSave: (p: Performance) => void;
@@ -10,14 +10,13 @@ interface PerformanceInfoProps {
 
 export const PerformanceInfo: React.FC<PerformanceInfoProps> = ({ onSave, isSaved }) => {
   const [performances, setPerformances] = useState<Performance[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   const fetchPerformances = async (query: string = "") => {
-    if (query) setIsSearching(true);
-    else setLoading(true);
-    
+    setIsSearching(true);
+    setHasSearched(true);
     try {
       const today = new Date().toISOString().split('T')[0];
       const data = await getUpcomingPerformances(today, query);
@@ -25,14 +24,9 @@ export const PerformanceInfo: React.FC<PerformanceInfoProps> = ({ onSave, isSave
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
       setIsSearching(false);
     }
   };
-
-  useEffect(() => {
-    fetchPerformances();
-  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,9 +65,20 @@ export const PerformanceInfo: React.FC<PerformanceInfoProps> = ({ onSave, isSave
         </form>
       </div>
 
-      {loading ? (
+      {isSearching ? (
         <div className="flex flex-col items-center py-20 space-y-6">
           <Loader2 className="w-8 h-8 text-[#9A84A1] animate-spin" />
+          <p className="text-xs font-bold uppercase tracking-[0.4em] text-stone-500">검색 중...</p>
+        </div>
+      ) : !hasSearched ? (
+        <div className="text-center py-32 bg-[#F8F5FA] border-2 border-dashed border-stone-200">
+          <Search className="w-10 h-10 text-stone-400 mx-auto mb-6" />
+          <p className="text-stone-700 text-lg font-medium">위 검색창에서 공연을 찾아보세요.</p>
+          <p className="text-stone-500 text-sm mt-2">예: 임윤찬, 조성진, 베를린 필, 5월 서울</p>
+        </div>
+      ) : performances.length === 0 ? (
+        <div className="text-center py-24 bg-[#F8F5FA] border-2 border-dashed border-stone-200">
+          <p className="text-stone-600 text-base">검색 결과가 없습니다. 다른 검색어로 시도해보세요.</p>
         </div>
       ) : (
         <div className="space-y-6">

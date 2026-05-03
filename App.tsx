@@ -29,29 +29,14 @@ const App: React.FC = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  const fetchCurationData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const savedPiece = localStorage.getItem(`classic_daily_${today}`);
-
-      if (savedPiece) {
-        setTodayPiece(JSON.parse(savedPiece));
-      } else {
-        const results = await generateCandidates(today);
-        setCandidates(results);
-      }
-    } catch (err) {
-      console.error(err);
-      setError("데이터를 불러오지 못했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchCurationData();
+    const today = new Date().toISOString().split('T')[0];
+    const savedPiece = localStorage.getItem(`classic_daily_${today}`);
+    if (savedPiece) {
+      try { setTodayPiece(JSON.parse(savedPiece)); } catch {}
+    }
+    setLoading(false);
+
     const savedHistory = localStorage.getItem('classic_history');
     if (savedHistory) setHistory(JSON.parse(savedHistory));
 
@@ -67,7 +52,7 @@ const App: React.FC = () => {
     if (sp) setSavedPieces(JSON.parse(sp));
     const spf = localStorage.getItem('saved_performances');
     if (spf) setSavedPerformances(JSON.parse(spf));
-  }, [fetchCurationData]);
+  }, []);
 
   const handleSetView = (view: ViewState) => {
     setCurrentView(view);
@@ -171,6 +156,8 @@ const App: React.FC = () => {
             onConfirm={handleConfirmPiece}
             onSearch={handleCustomSearch}
             isSearching={isSearching}
+            tier={tier}
+            onUpgrade={() => handleSetView(ViewState.PRICING)}
           />
         );
       case ViewState.PERFORMANCES:

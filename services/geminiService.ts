@@ -16,6 +16,15 @@ export interface CurationInspiration {
   filters: CurationFilters;
 }
 
+export interface DailyPick {
+  theme: string;
+  description: string;
+  title: string;
+  composer: string;
+  performer: string;
+  youtubeQuery: string;
+}
+
 async function callGemini<T>(payload: Record<string, unknown>): Promise<T> {
   const response = await fetch("/api/gemini", {
     method: "POST",
@@ -35,6 +44,10 @@ export const getInspirations = async (
   date: string,
 ): Promise<CurationInspiration[]> => {
   return callGemini<CurationInspiration[]>({ action: "inspirations", date });
+};
+
+export const getDailyPick = async (date: string): Promise<DailyPick> => {
+  return callGemini<DailyPick>({ action: "dailyPick", date });
 };
 
 export const generateCandidates = async (
